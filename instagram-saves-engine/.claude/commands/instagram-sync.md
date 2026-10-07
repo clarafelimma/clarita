@@ -4,11 +4,11 @@ description: Sincroniza saves do Instagram e gera ideias de conteúdo
 Ação pedida: $ARGUMENTS
 
 Projeto: CAMINHO_ABSOLUTO/instagram-saves-engine
-Banco Instagram Saves (ID): COLE_O_ID_DO_BANCO_SAVES
-Banco Content Ideas (ID): COLE_O_ID_DO_BANCO_IDEIAS
-Público/nicho: SEU_NICHO
-Pilares: SEUS_PILARES
-Mapa coleção → pilar: SEU_MAPA
+Banco Instagram Saves (ID): 6f07610a0fa04086ae13acb5b0071cc0
+Banco Content Ideas (ID): 12f48ec3a7274aec8d8c2f80dbc2d61f
+Público/nicho: bancos, fintechs e operadores de crédito imobiliário (Corbfy: agente de IA que automatiza a concessão de crédito imobiliário via WhatsApp)
+Pilares: Educação, Prova, Produto, Bastidores de IA
+Mapa coleção → pilar: "Inspiration" e "Content Ideas" podem ir para qualquer pilar
 
 Ações possíveis:
 
