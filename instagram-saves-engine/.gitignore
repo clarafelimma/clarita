@@ -1,0 +1,6 @@
+config.json
+state.json
+sync.log
+launchd-*.log
+.venv/
+__pycache__/
