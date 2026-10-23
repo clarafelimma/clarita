@@ -9,12 +9,12 @@ export const SAFE_TOP = 1920 * 0.14;
 export const SAFE_BOTTOM = 1920 * 0.35;
 
 // cenas.mp4 tem as duas cenas do Gemini em sequência (0–10s e 10–20s).
-export const Scene: React.FC<{fromSeconds: number}> = ({fromSeconds}) => (
+export const Scene: React.FC<{fromSeconds: number; volume?: (frame: number) => number}> = ({fromSeconds, volume}) => (
 	<AbsoluteFill style={{backgroundColor: 'black'}}>
 		<OffthreadVideo
 			src={staticFile('cenas.mp4')}
 			startFrom={fromSeconds * FPS}
-			muted={false}
+			volume={volume}
 			style={{width: '100%', height: '100%', objectFit: 'cover'}}
 		/>
 	</AbsoluteFill>
