@@ -2,6 +2,8 @@ import {AbsoluteFill, interpolate, OffthreadVideo, spring, staticFile, useCurren
 
 export const FPS = 30;
 export const STORY_FRAMES = 10 * FPS;
+// Story 2 ganha uma tela final de CTA depois da cena do Gemini.
+export const END_CARD_FRAMES = 4 * FPS;
 export const ORANGE = '#FF7A1A';
 
 // Áreas que o Instagram cobre: 14% no topo e 35% na base.
@@ -41,12 +43,12 @@ export const Caption: React.FC<{
 	weight?: number;
 }> = ({from, to, top, children, size = 84, weight = 800}) => {
 	const frame = useCurrentFrame();
-	const {fps} = useVideoConfig();
+	const {fps, durationInFrames} = useVideoConfig();
 	const start = from * fps;
 	const end = to * fps;
 	if (frame < start || frame > end) return null;
 	const enter = spring({frame: frame - start, fps, config: {damping: 200}, durationInFrames: 18});
-	const exit = to * fps >= STORY_FRAMES ? 1 : interpolate(frame, [end - 8, end], [1, 0], {extrapolateLeft: 'clamp'});
+	const exit = end >= durationInFrames ? 1 : interpolate(frame, [end - 8, end], [1, 0], {extrapolateLeft: 'clamp'});
 	return (
 		<div
 			style={{

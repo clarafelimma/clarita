@@ -41,10 +41,19 @@ export const Story1: React.FC = () => (
 		<Caption from={0.3} to={3} top={SAFE_TOP + 20} size={120}>
 			Sexta, <Hl>18h.</Hl>
 		</Caption>
-		<Bubble text="de novo sem internet…" delay={3.2} top={SAFE_TOP + 20} />
-		<Bubble text="terceira vez essa semana 😡" delay={4.1} top={SAFE_TOP + 250} />
+		<Caption from={1.1} to={3} top={SAFE_TOP + 170} size={60} weight={600}>
+			Expediente encerrado.
+		</Caption>
+		<Caption from={3.1} to={6} top={SAFE_TOP + 20} size={56} weight={600}>
+			Enquanto isso, no WhatsApp…
+		</Caption>
+		<Bubble text="de novo sem internet…" delay={3.5} top={SAFE_TOP + 120} />
+		<Bubble text="terceira vez essa semana 😡" delay={4.4} top={SAFE_TOP + 350} />
 		<Caption from={6.2} to={10} top={SAFE_TOP + 20} size={92}>
-			Esse cliente pode <Hl>cancelar no fim de semana.</Hl>
+			Ninguém viu. <Hl>Segunda, ele cancela.</Hl>
+		</Caption>
+		<Caption from={8} to={10} top={SAFE_TOP + 360} size={52} weight={600}>
+			Dá pra evitar. Veja no próximo →
 		</Caption>
 	</AbsoluteFill>
 );
