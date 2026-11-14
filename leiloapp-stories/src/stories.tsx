@@ -24,8 +24,7 @@ import {StoryText} from './components';
  * Trechos (cópias locais dos vídeos do Drive, cortados em pausas da fala; áudio normalizado):
  *  n1 = "NINGUÉM TEM 30 MINUTOS - RAFA COLANDO"  0,00–10,90 s
  *  n2 = idem                                     36,25–42,80 s
- *  c1 = "Calculadora no campo - final aprovado"   6,40–9,07 s
- *  c2 = idem                                     14,17–18,70 s
+ *  c12 = "Calculadora no campo - final aprovado"  6,40–14,10 s (frase inteira, sem cortes)
  *  c3 = idem                                     21,76–30,72 s
  *  k1 = "CÁLCULO NA CAÇAMBA"                     31,85–45,72 s
  */
@@ -49,25 +48,21 @@ export const Story1: React.FC = () => (
 /* ------------------------------------------------------------------ */
 /* STORY 2 — A virada                                                  */
 /* "E eu sei disso aqui tudo, ó, que eu tô usando a calculadora, muito mais rápido.
-    Agora é só emitir nota e viajar." → "Conforme cê for registrando aqui o gado,"
-    → "E você tem o romaneio sendo gerado, que você pode exportar pra enviar." */
+    Agora é só emitir nota e viajar." → (tela real da CDP, trecho contínuo)
+    "Conforme cê for registrando aqui o gado, ele vai aparecendo... o valor de cada um." */
 const N2 = 198;
-const C1 = 80;
-const C2 = 137;
-export const S2_DURATION = N2 + C1 + C2;
+const C12 = 231;
+export const S2_DURATION = N2 + C12;
 
 export const Story2: React.FC = () => (
   <AbsoluteFill style={{backgroundColor: 'black'}}>
     <Sequence durationInFrames={N2}>
       <OffthreadVideo src={v('n2')} />
     </Sequence>
-    <Sequence from={N2} durationInFrames={C1}>
-      <OffthreadVideo src={v('c1')} />
+    <Sequence from={N2}>
+      <OffthreadVideo src={v('c12')} />
     </Sequence>
-    <Sequence from={N2 + C1}>
-      <OffthreadVideo src={v('c2')} />
-    </Sequence>
-    <StoryText from={N2 + 2} to={N2 + C1 + 60} top={236} lines={['na Calculadora LeiloApp', 'é assim 👇']} />
+    <StoryText from={N2 + 2} to={N2 + 120} top={236} lines={['na Calculadora LeiloApp', 'é assim 👇']} />
   </AbsoluteFill>
 );
 
@@ -103,10 +98,10 @@ const REVIEWS: Review[] = [
   {file: 'reviews/34_renato_urban_urban.png', w: 838, h: 252},
   {file: 'reviews/08_kelli_santana.png', w: 804, h: 316}, // último: vira destaque
 ];
-const WALL_START = 34;
+const WALL_START = 52; // antes disso, a frase de contexto fica sozinha na tela
 const WALL_STEP = 6; // um print novo a cada 0,2 s
-const HIGHLIGHT_IN = WALL_START + WALL_STEP * REVIEWS.length + 8; // 162
-const HIGHLIGHT_OUT = 246;
+const HIGHLIGHT_IN = WALL_START + WALL_STEP * REVIEWS.length + 8; // 180
+const HIGHLIGHT_OUT = 250;
 const WALL_SCALE = 0.62;
 
 const slot = (i: number) => {
@@ -190,17 +185,18 @@ export const Story3: React.FC = () => {
         </Sequence>
       </AbsoluteFill>
 
-      <StoryText from={0} to={WALL_START + 4} top={236} lines={['e quem já usa,', 'o que acha? 👇']} />
+      {/* ponte com o story 2 (o produtor que já usa) e contexto dos prints */}
+      <StoryText from={0} to={WALL_START + 2} top={236} lines={['não é só ele que fala isso 👀', 'olha as avaliações no Google 👇']} size={48} />
       {frame > WALL_START && frame < HIGHLIGHT_OUT ? (
         <StoryText
           from={WALL_START + 1}
           to={HIGHLIGHT_OUT}
           top={236}
-          lines={[`⭐⭐⭐⭐⭐  ${shown} ${shown === 1 ? 'avaliação' : 'avaliações'}`]}
+          lines={[`⭐⭐⭐⭐⭐  ${shown} ${shown === 1 ? 'avaliação' : 'avaliações'} no Google`]}
           size={46}
         />
       ) : null}
-      <StoryText from={HIGHLIGHT_OUT + 2} to={S3_DURATION} top={236} lines={['e tem mais de 30', 'assim 👀']} />
+      <StoryText from={HIGHLIGHT_OUT + 2} to={S3_DURATION} top={236} lines={['e tem mais de 30 assim,', 'todas com 5 estrelas ⭐']} />
 
       {REVIEWS.map((r, i) => (
         <ReviewCard key={r.file} r={r} i={i} />
@@ -228,9 +224,44 @@ export const Story4: React.FC = () => (
         <OffthreadVideo src={v('k1')} muted />
       </Freeze>
     </Sequence>
-    {/* a partir de "use," entra o convite, no peito dele (rosto acima, legendas abaixo) */}
-    <StoryText from={282} to={S4_DURATION} top={860} lines={['sua próxima pesagem', 'já pode ser assim']} size={58} />
-    <StoryText from={318} to={S4_DURATION} top={1064} lines={['toque no link e assina 👇']} size={48} tone="green" />
+    {/* Cobre o letreiro original (x 94–987, y 242–458) durante todo o story */}
+    <CtaBox />
     {/* espaço livre para o sticker de link: y≈1160–1460 (acima das legendas originais, y≈1500) */}
   </AbsoluteFill>
 );
+
+const CtaBox: React.FC = () => {
+  const frame = useCurrentFrame();
+  const {fps} = useVideoConfig();
+  const pop = spring({frame, fps, config: {damping: 14, stiffness: 180}, durationInFrames: 14});
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 66,
+        top: 226,
+        width: 948,
+        height: 250,
+        background: '#FFFFFF',
+        borderRadius: 26,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: '"Inter", system-ui, sans-serif',
+        fontWeight: 700,
+        fontSize: 60,
+        lineHeight: 1.12,
+        color: '#111111',
+        letterSpacing: -0.6,
+        textAlign: 'center',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.18)',
+        transform: `scale(${0.96 + 0.04 * pop})`,
+      }}
+    >
+      <span>fale com nosso time</span>
+      <span>nesse link e agilize</span>
+      <span>sua lida 🤠</span>
+    </div>
+  );
+};
