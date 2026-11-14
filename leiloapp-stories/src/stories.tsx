@@ -1,11 +1,11 @@
 import React from 'react';
 import {
   AbsoluteFill,
+  Easing,
   Freeze,
   Img,
   interpolate,
   OffthreadVideo,
-  random,
   Sequence,
   spring,
   staticFile,
@@ -13,224 +13,34 @@ import {
   useVideoConfig,
 } from 'remotion';
 import {StoryText} from './components';
+import {SANS} from './brand';
 
 /*
- * ROTEIRO (início → meio → fim)
- *  1. A dor: a pesagem acabou, mas um ainda vai somar no papel ("mais uns 30 minutos").
- *  2. A virada: o outro já terminou ("agora é só emitir nota e viajar") e a tela real da CDP.
- *  3. A prova: chuva de avaliações reais do Google (20 prints originais) sobre a demonstração.
- *  4. O fechamento: "todo mundo erra, ninguém está te reconferindo". Convite para assinar.
+ * ROTEIRO — uma história só, contada pelo Germano do começo ao fim
+ *  1. O erro (gancho): "Você que acha que não erra…" terminaram o manejo, mandaram
+ *     o valor pro vendedor… "Que que ele fez?"  → toca pra ver
+ *  2. A revelação: era 209 e não 198 — "ele ia perder R$ 11.000,00 porque digitou
+ *     errado na calculadora do celular dele."
+ *  3. A solução: "passou o último gado… não precisa sentar, ficar refazendo a conta"
+ *     + a tela real da CDP lançando os pesos e gerando o romaneio.
+ *  4. A prova: rolagem com 20 avaliações reais do Google, com a voz dele seguindo.
+ *  5. O convite: "pra você que acha que não erra… todo mundo erra" → fale com o time.
  *
- * Trechos (cópias locais dos vídeos do Drive, cortados em pausas da fala; áudio normalizado):
- *  n1 = "NINGUÉM TEM 30 MINUTOS - RAFA COLANDO"  0,00–10,90 s
- *  n2 = idem                                     36,25–42,80 s
- *  c12 = "Calculadora no campo - final aprovado"  6,40–14,10 s (frase inteira, sem cortes)
- *  c3 = idem                                     21,76–30,72 s
- *  k1 = "CÁLCULO NA CAÇAMBA"                     31,85–45,72 s
+ * Trechos (cortes em pausas da fala; áudio normalizado):
+ *  k_a = "CÁLCULO NA CAÇAMBA"               0,00–2,20 s
+ *  k_b = idem                               4,62–19,24 s
+ *  k_c = idem                              19,24–31,60 s
+ *  k_d = idem                              31,85–45,72 s
+ *  g_a = "Calculadora no campo - final aprovado"  0,00–18,66 s
+ *  g_b = idem                              18,66–30,72 s
  */
 const v = (name: string) => staticFile(`media/${name}.mp4`);
 
-/* ------------------------------------------------------------------ */
-/* STORY 1 — A dor                                                     */
-/* "Que que ele vai ter que fazer aqui, ó? Somar um por um para fazer o total,
-    depois ver se bate com o meu. No final é bater. E o meu eu gastei o quê?
-    Só o tempo de pesar. E o dele vai ter que gastar mais uns 30 minutos aqui ainda." */
-export const S1_DURATION = 327;
-
-export const Story1: React.FC = () => (
-  <AbsoluteFill style={{backgroundColor: 'black'}}>
-    <OffthreadVideo src={v('n1')} />
-    {/* entra depois que o letreiro original sai; fica acima da cabeça dele */}
-    <StoryText from={196} to={S1_DURATION} top={236} lines={['qual dos dois', 'é você? 👀']} size={56} />
-  </AbsoluteFill>
-);
-
-/* ------------------------------------------------------------------ */
-/* STORY 2 — A virada                                                  */
-/* "E eu sei disso aqui tudo, ó, que eu tô usando a calculadora, muito mais rápido.
-    Agora é só emitir nota e viajar." → (tela real da CDP, trecho contínuo)
-    "Conforme cê for registrando aqui o gado, ele vai aparecendo... o valor de cada um." */
-const N2 = 198;
-const C12 = 231;
-export const S2_DURATION = N2 + C12;
-
-export const Story2: React.FC = () => (
-  <AbsoluteFill style={{backgroundColor: 'black'}}>
-    <Sequence durationInFrames={N2}>
-      <OffthreadVideo src={v('n2')} />
-    </Sequence>
-    <Sequence from={N2}>
-      <OffthreadVideo src={v('c12')} />
-    </Sequence>
-    <StoryText from={N2 + 2} to={N2 + 120} top={236} lines={['na Calculadora LeiloApp', 'é assim 👇']} />
-  </AbsoluteFill>
-);
-
-/* ------------------------------------------------------------------ */
-/* STORY 3 — A prova                                                   */
-/* Fundo e áudio: "E, obviamente, você sabe em tempo real, sem precisar esperar a
-   pesagem acabar, qual é a média dos seus animais enquanto a pesagem está sendo feita." */
-const C3 = 268;
-export const S3_DURATION = 300;
-
-type Review = {file: string; w: number; h: number};
-// Prints originais do Google ampliados 2x (Lanczos). Nos JPGs só sai a margem
-// branca da direita e o ícone de denúncia; texto, nome, estrelas e foto intactos.
-const REVIEWS: Review[] = [
-  {file: 'reviews/22_joao_raimundo_r_marques.png', w: 1246, h: 292},
-  {file: 'reviews/04_raylson_andrade.png', w: 804, h: 274},
-  {file: 'reviews/24_everson_barros.png', w: 948, h: 252},
-  {file: 'reviews/07_amanda.png', w: 804, h: 274},
-  {file: 'reviews/13_patricio_evangelista.png', w: 1246, h: 252},
-  {file: 'reviews/03_ogener_amaral.png', w: 804, h: 274},
-  {file: 'reviews/26_yandro_raphael_ribeiro.png', w: 970, h: 252},
-  {file: 'reviews/06_joao_pedro.png', w: 804, h: 274},
-  {file: 'reviews/31_nelsonlss.png', w: 1150, h: 252},
-  {file: 'reviews/01_jorge_goes.png', w: 804, h: 278},
-  {file: 'reviews/16_juliano_terra.png', w: 778, h: 252},
-  {file: 'reviews/05_janaina_anjos.png', w: 804, h: 274},
-  {file: 'reviews/37_tamara_vieira_de_jesus.png', w: 1044, h: 252},
-  {file: 'reviews/32_rafael_medeiros_sanches.png', w: 1246, h: 332},
-  {file: 'reviews/21_joao_alfredo.png', w: 700, h: 252},
-  {file: 'reviews/38_leticia_venero_da_cunha.png', w: 1226, h: 252},
-  {file: 'reviews/12_adail_hemerich.png', w: 778, h: 252},
-  {file: 'reviews/20_fernando_lira_zap_empreendimentos.png', w: 702, h: 292},
-  {file: 'reviews/34_renato_urban_urban.png', w: 838, h: 252},
-  {file: 'reviews/08_kelli_santana.png', w: 804, h: 316}, // último: vira destaque
-];
-const WALL_START = 52; // antes disso, a frase de contexto fica sozinha na tela
-const WALL_STEP = 6; // um print novo a cada 0,2 s
-const HIGHLIGHT_IN = WALL_START + WALL_STEP * REVIEWS.length + 8; // 180
-const HIGHLIGHT_OUT = 250;
-const WALL_SCALE = 0.62;
-
-const slot = (i: number) => {
-  // espalha os cards pela tela, alternando lados, de cima para baixo
-  const row = i % 10;
-  const left = (i + Math.floor(i / 10)) % 2 === 0;
-  return {
-    x: (left ? 380 : 700) + (random(`x${i}`) - 0.5) * 120,
-    y: 470 + row * 108 + (i >= 10 ? 54 : 0) + (random(`y${i}`) - 0.5) * 40,
-    rot: (random(`r${i}`) - 0.5) * 10,
-  };
-};
-
-const ReviewCard: React.FC<{r: Review; i: number}> = ({r, i}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
-  const appear = WALL_START + i * WALL_STEP;
-  if (frame < appear) return null;
-  const pop = spring({frame: frame - appear, fps, config: {damping: 12, stiffness: 200}, durationInFrames: 14});
-  const s = slot(i);
-  const isHero = i === REVIEWS.length - 1;
-
-  let w = r.w * WALL_SCALE;
-  // mantém o card inteiro dentro do quadro
-  s.x = Math.min(Math.max(s.x, w / 2 + 24), 1080 - w / 2 - 24);
-  let x = s.x;
-  let y = s.y;
-  let rot = s.rot;
-  let dim = 0;
-
-  const hl = spring({frame: frame - HIGHLIGHT_IN, fps, config: {damping: 200}, durationInFrames: 16});
-  const back = spring({frame: frame - HIGHLIGHT_OUT, fps, config: {damping: 200}, durationInFrames: 14});
-  const focus = frame >= HIGHLIGHT_IN ? hl * (1 - back) : 0;
-  if (isHero) {
-    w = interpolate(focus, [0, 1], [w, 1010]);
-    x = interpolate(focus, [0, 1], [s.x, 540]);
-    y = interpolate(focus, [0, 1], [s.y, 980]);
-    rot = interpolate(focus, [0, 1], [s.rot, 0]);
-  } else {
-    dim = focus * 0.55;
-  }
-  const h = (r.h / r.w) * w;
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        left: x - w / 2,
-        top: y - h / 2,
-        width: w,
-        height: h,
-        transform: `rotate(${rot}deg) scale(${0.5 + 0.5 * pop})`,
-        opacity: Math.min(1, pop * 1.5),
-        borderRadius: 16,
-        overflow: 'hidden',
-        background: 'white',
-        boxShadow: '0 16px 40px rgba(0,0,0,0.45)',
-        zIndex: isHero && focus > 0 ? 100 : i,
-      }}
-    >
-      <Img src={staticFile(r.file)} style={{width: '100%', height: '100%', display: 'block'}} />
-      {dim > 0 ? <div style={{position: 'absolute', inset: 0, background: `rgba(0,0,0,${dim})`}} /> : null}
-    </div>
-  );
-};
-
-export const Story3: React.FC = () => {
-  const frame = useCurrentFrame();
-  const shown = Math.max(0, Math.min(REVIEWS.length, Math.floor((frame - WALL_START) / WALL_STEP) + 1));
-  const blur = interpolate(frame, [20, 50], [0, 12], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
-  const bright = interpolate(frame, [20, 50], [1, 0.45], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
-  return (
-    <AbsoluteFill style={{backgroundColor: 'black'}}>
-      <AbsoluteFill style={{filter: `blur(${blur}px) brightness(${bright})`, transform: `scale(${1 + blur / 200})`}}>
-        <Sequence durationInFrames={C3}>
-          <OffthreadVideo src={v('c3')} />
-        </Sequence>
-        <Sequence from={C3}>
-          <Freeze frame={C3 - 1}>
-            <OffthreadVideo src={v('c3')} muted />
-          </Freeze>
-        </Sequence>
-      </AbsoluteFill>
-
-      {/* ponte com o story 2 (o produtor que já usa) e contexto dos prints */}
-      <StoryText from={0} to={WALL_START + 2} top={236} lines={['não é só ele que fala isso 👀', 'olha as avaliações no Google 👇']} size={48} />
-      {frame > WALL_START && frame < HIGHLIGHT_OUT ? (
-        <StoryText
-          from={WALL_START + 1}
-          to={HIGHLIGHT_OUT}
-          top={236}
-          lines={[`⭐⭐⭐⭐⭐  ${shown} ${shown === 1 ? 'avaliação' : 'avaliações'} no Google`]}
-          size={46}
-        />
-      ) : null}
-      <StoryText from={HIGHLIGHT_OUT + 2} to={S3_DURATION} top={236} lines={['e tem mais de 30 assim,', 'todas com 5 estrelas ⭐']} />
-
-      {REVIEWS.map((r, i) => (
-        <ReviewCard key={r.file} r={r} i={i} />
-      ))}
-    </AbsoluteFill>
-  );
-};
-
-/* ------------------------------------------------------------------ */
-/* STORY 4 — O fechamento                                              */
-/* "Então, pra você que acha que não erra, ou você não está sendo reconferido,
-    porque todo mundo erra! Então, ninguém está te reconferindo. Então, pra você
-    não precisar de reconferência, use, vem profissionalizar sua pesagem com a
-    calculadora digital de pesagem da LeiloApp." */
-const K1 = 416;
-export const S4_DURATION = K1 + 30;
-
-export const Story4: React.FC = () => (
-  <AbsoluteFill style={{backgroundColor: 'black'}}>
-    <Sequence durationInFrames={K1}>
-      <OffthreadVideo src={v('k1')} />
-    </Sequence>
-    <Sequence from={K1}>
-      <Freeze frame={K1 - 1}>
-        <OffthreadVideo src={v('k1')} muted />
-      </Freeze>
-    </Sequence>
-    {/* Cobre o letreiro original (x 94–987, y 242–458) durante todo o story */}
-    <CtaBox />
-    {/* espaço livre para o sticker de link: y≈1160–1460 (acima das legendas originais, y≈1500) */}
-  </AbsoluteFill>
-);
-
-const CtaBox: React.FC = () => {
+/**
+ * Caixa branca que cobre o letreiro verde original do vídeo da caçamba
+ * (x 94–987, y 242–458) e leva o nosso texto no lugar.
+ */
+const CoverBox: React.FC<{lines: string[]; size?: number}> = ({lines, size = 60}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const pop = spring({frame, fps, config: {damping: 14, stiffness: 180}, durationInFrames: 14});
@@ -248,9 +58,9 @@ const CtaBox: React.FC = () => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: '"Inter", system-ui, sans-serif',
+        fontFamily: SANS,
         fontWeight: 700,
-        fontSize: 60,
+        fontSize: size,
         lineHeight: 1.12,
         color: '#111111',
         letterSpacing: -0.6,
@@ -259,9 +69,218 @@ const CtaBox: React.FC = () => {
         transform: `scale(${0.96 + 0.04 * pop})`,
       }}
     >
-      <span>fale com nosso time</span>
-      <span>nesse link e agilize</span>
-      <span>sua lida 🤠</span>
+      {lines.map((l) => (
+        <span key={l}>{l}</span>
+      ))}
     </div>
   );
 };
+
+const Hold: React.FC<{src: string; at: number}> = ({src, at}) => (
+  <Freeze frame={at}>
+    <OffthreadVideo src={src} muted />
+  </Freeze>
+);
+
+/* ------------------------------------------------------------------ */
+/* STORY 1 — O erro                                                    */
+/* "Você que acha que não erra, vem cá. | Estamos aqui, terminamos o manejo. Fui mandar
+    ao comprador enviar o Pix, mandei pro vendedor 5.529,50. O vendedor escreveu na conta
+    dele, em 38 cabeça, esse valor aqui. Que que ele fez?" */
+const KA = 66;
+const KB = 436; // termina antes da legenda seguinte ("Estava esperando…") aparecer
+export const S1_DURATION = KA + KB;
+
+export const Story1: React.FC = () => (
+  <AbsoluteFill style={{backgroundColor: 'black'}}>
+    <Sequence durationInFrames={KA}>
+      <OffthreadVideo src={v('k_a')} />
+    </Sequence>
+    <Sequence from={KA}>
+      <OffthreadVideo src={v('k_b')} />
+    </Sequence>
+    <CoverBox lines={['terminou a pesagem,', 'foi fazer a conta na', 'calculadora do celular… 😬']} size={56} />
+    {/* "Que que ele fez?" → convite pra tocar e ver o próximo */}
+    <StoryText from={S1_DURATION - 26} to={S1_DURATION} top={1330} lines={['toca pra ver o que deu 👉']} size={50} />
+  </AbsoluteFill>
+);
+
+/* ------------------------------------------------------------------ */
+/* STORY 2 — A revelação                                               */
+/* "Estava esperando 38 cabeças, estava esperando um Pix de 198. Porém, não é 198,
+    é 209. Ele ia perder R$ 11.000,00 porque ele digitou errado na calculadora do
+    celular dele." */
+export const S2_DURATION = 371;
+
+export const Story2: React.FC = () => (
+  <AbsoluteFill style={{backgroundColor: 'black'}}>
+    <OffthreadVideo src={v('k_c')} />
+    <CoverBox lines={['R$ 11 mil quase foram', 'embora por um número', 'digitado errado 💸']} size={58} />
+  </AbsoluteFill>
+);
+
+/* ------------------------------------------------------------------ */
+/* STORY 3 — A solução                                                 */
+/* "E no final, passou o último gado, não tem problema. Acabou, acabou. Então você já
+    pode ir pra casa. Não precisa sentar, ficar refazendo a conta. Conforme cê for
+    registrando aqui o gado, ele vai aparecendo... o valor de cada um. E você tem o
+    romaneio sendo gerado, que você pode exportar pra enviar." */
+export const S3_DURATION = 560;
+
+export const Story3: React.FC = () => (
+  <AbsoluteFill style={{backgroundColor: 'black'}}>
+    <OffthreadVideo src={v('g_a')} />
+    {/* entra quando a tela da CDP aparece (corte em 6,4 s) */}
+    <StoryText from={194} to={330} top={236} lines={['na Calculadora LeiloApp,', 'a conta vai saindo pronta 👇']} size={48} />
+  </AbsoluteFill>
+);
+
+/* ------------------------------------------------------------------ */
+/* STORY 4 — A prova                                                   */
+/* Voz e fundo seguem do story 3: "Bater um print aqui pra enviar pra moçada, né? E,
+   obviamente, você sabe em tempo real, sem precisar esperar a pesagem acabar, qual é a
+   média dos seus animais enquanto a pesagem está sendo feita." */
+const GB = 362;
+export const S4_DURATION = GB + 36;
+
+type Review = {file: string; w: number; h: number};
+// Prints originais do Google, ampliados 2x sem retoque (nos JPGs saiu só a margem
+// branca da direita e o ícone de denúncia).
+const REVIEWS: Review[] = [
+  {file: 'reviews/24_everson_barros.png', w: 948, h: 252},
+  {file: 'reviews/04_raylson_andrade.png', w: 804, h: 274},
+  {file: 'reviews/22_joao_raimundo_r_marques.png', w: 1246, h: 292},
+  {file: 'reviews/07_amanda.png', w: 804, h: 274},
+  {file: 'reviews/13_patricio_evangelista.png', w: 1246, h: 252},
+  {file: 'reviews/03_ogener_amaral.png', w: 804, h: 274},
+  {file: 'reviews/26_yandro_raphael_ribeiro.png', w: 970, h: 252},
+  {file: 'reviews/06_joao_pedro.png', w: 804, h: 274},
+  {file: 'reviews/16_juliano_terra.png', w: 778, h: 252},
+  {file: 'reviews/01_jorge_goes.png', w: 804, h: 278},
+  {file: 'reviews/31_nelsonlss.png', w: 1150, h: 252},
+  {file: 'reviews/05_janaina_anjos.png', w: 804, h: 274},
+  {file: 'reviews/37_tamara_vieira_de_jesus.png', w: 1044, h: 252},
+  {file: 'reviews/21_joao_alfredo.png', w: 700, h: 252},
+  {file: 'reviews/32_rafael_medeiros_sanches.png', w: 1246, h: 332},
+  {file: 'reviews/38_leticia_venero_da_cunha.png', w: 1226, h: 252},
+  {file: 'reviews/12_adail_hemerich.png', w: 778, h: 252},
+  {file: 'reviews/20_fernando_lira_zap_empreendimentos.png', w: 702, h: 292},
+  {file: 'reviews/34_renato_urban_urban.png', w: 838, h: 252},
+  {file: 'reviews/08_kelli_santana.png', w: 804, h: 316}, // a rolagem para aqui
+];
+const CARD_W = 940;
+const GAP = 22;
+const FEED_TOP = 430; // área da rolagem: y 430–1560
+const FEED_BOTTOM = 1560;
+const SCROLL_FROM = 34;
+const SCROLL_TO = 318;
+
+const layout = (() => {
+  let y = 0;
+  return REVIEWS.map((r) => {
+    const h = (r.h / r.w) * CARD_W;
+    const top = y;
+    y += h + GAP;
+    return {top, h};
+  });
+})();
+
+export const Story4: React.FC = () => {
+  const frame = useCurrentFrame();
+  const blur = interpolate(frame, [10, 40], [0, 14], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+  const bright = interpolate(frame, [10, 40], [1, 0.42], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+
+  // começa com o 1º card entrando por baixo e termina com o último centralizado
+  const last = layout[layout.length - 1];
+  const startOffset = FEED_BOTTOM;
+  const endOffset = 995 - (last.top + last.h / 2);
+  const p = interpolate(frame, [SCROLL_FROM, SCROLL_TO], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: Easing.bezier(0.45, 0, 0.2, 1),
+  });
+  const offset = interpolate(p, [0, 1], [startOffset, endOffset]);
+  const settled = frame > SCROLL_TO;
+  const zoom = spring({frame: frame - SCROLL_TO, fps: 30, config: {damping: 200}, durationInFrames: 14});
+
+  return (
+    <AbsoluteFill style={{backgroundColor: 'black'}}>
+      <AbsoluteFill style={{filter: `blur(${blur}px) brightness(${bright})`, transform: `scale(${1 + blur / 220})`}}>
+        <Sequence durationInFrames={GB}>
+          <OffthreadVideo src={v('g_b')} />
+        </Sequence>
+        <Sequence from={GB}>
+          <Hold src={v('g_b')} at={GB - 1} />
+        </Sequence>
+      </AbsoluteFill>
+
+      {/* rolagem das avaliações, com esmaecimento nas bordas */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: FEED_TOP,
+          height: FEED_BOTTOM - FEED_TOP,
+          overflow: 'hidden',
+          WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, black 9%, black 91%, transparent 100%)',
+        }}
+      >
+        {REVIEWS.map((r, i) => {
+          const L = layout[i];
+          const y = offset + L.top - FEED_TOP;
+          if (y > FEED_BOTTOM || y + L.h < -40) return null;
+          const isLast = i === REVIEWS.length - 1;
+          const s = isLast && settled ? 1 + 0.08 * zoom : 1;
+          const dim = !isLast && settled ? 0.5 * zoom : 0;
+          return (
+            <div
+              key={r.file}
+              style={{
+                position: 'absolute',
+                left: (1080 - CARD_W) / 2,
+                top: y,
+                width: CARD_W,
+                height: L.h,
+                borderRadius: 18,
+                overflow: 'hidden',
+                background: 'white',
+                boxShadow: '0 14px 36px rgba(0,0,0,0.45)',
+                transform: `scale(${s})`,
+                zIndex: isLast ? 10 : 1,
+              }}
+            >
+              <Img src={staticFile(r.file)} style={{width: '100%', height: '100%', display: 'block'}} />
+              {dim > 0 ? <div style={{position: 'absolute', inset: 0, background: `rgba(0,0,0,${dim})`}} /> : null}
+            </div>
+          );
+        })}
+      </div>
+
+      <StoryText from={0} to={SCROLL_TO + 4} top={236} lines={['e quem já usa no dia a dia,', 'fala o quê? 👇']} size={50} />
+      <StoryText from={SCROLL_TO + 6} to={S4_DURATION} top={236} lines={['é nota máxima atrás', 'de nota máxima ⭐⭐⭐⭐⭐']} size={50} />
+    </AbsoluteFill>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+/* STORY 5 — O convite                                                 */
+/* "Então, pra você que acha que não erra, ou você não está sendo reconferido, porque
+    todo mundo erra! Então, ninguém está te reconferindo. Então, pra você não precisar
+    de reconferência, use, vem profissionalizar sua pesagem com a calculadora digital
+    de pesagem da LeiloApp." */
+const KD = 416;
+export const S5_DURATION = KD + 30;
+
+export const Story5: React.FC = () => (
+  <AbsoluteFill style={{backgroundColor: 'black'}}>
+    <Sequence durationInFrames={KD}>
+      <OffthreadVideo src={v('k_d')} />
+    </Sequence>
+    <Sequence from={KD}>
+      <Hold src={v('k_d')} at={KD - 1} />
+    </Sequence>
+    <CoverBox lines={['fale com nosso time', 'nesse link e agilize', 'sua lida 🤠']} />
+    {/* espaço livre para o sticker de link: y≈1160–1460 (acima das legendas originais, y≈1500) */}
+  </AbsoluteFill>
+);
