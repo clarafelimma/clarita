@@ -33,7 +33,7 @@ O vídeo "FLAVIA NÃO ERRA" não entra porque a pessoa aparece com a camisa da L
 
 ```bash
 npm install
-# os trechos já cortados ficam em public/media (n1, n2, c1, c2, c3, k1), fora do git
+# os trechos já cortados ficam em public/media (n1, n2, c12, c3, k1), fora do git
 npx remotion studio src/index.ts
 npx remotion render src/index.ts Sequencia-Completa out/00_sequencia_completa.mp4
 ```
