@@ -2,25 +2,12 @@ import React from 'react';
 import {Composition, Series} from 'remotion';
 import './brand';
 import {FPS, HEIGHT, WIDTH} from './brand';
-import {
-  S1_DURATION,
-  S2_DURATION,
-  S3_DURATION,
-  S4_DURATION,
-  S5_DURATION,
-  Story1,
-  Story2,
-  Story3,
-  Story4,
-  Story5,
-} from './stories';
+import {S1_DURATION, S2_DURATION, S3_DURATION, Story1, Story2, Story3} from './stories';
 
 const STORIES = [
-  {id: 'Story1-OErro', C: Story1, d: S1_DURATION},
-  {id: 'Story2-ARevelacao', C: Story2, d: S2_DURATION},
-  {id: 'Story3-ASolucao', C: Story3, d: S3_DURATION},
-  {id: 'Story4-AProva', C: Story4, d: S4_DURATION},
-  {id: 'Story5-OConvite', C: Story5, d: S5_DURATION},
+  {id: 'Story1-OGancho', C: Story1, d: S1_DURATION},
+  {id: 'Story2-OSusto', C: Story2, d: S2_DURATION},
+  {id: 'Story3-AVirada', C: Story3, d: S3_DURATION},
 ];
 
 const Sequencia: React.FC = () => (
